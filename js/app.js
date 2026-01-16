@@ -39,6 +39,12 @@ const App = {
         // Atualizar tabela
         TableManager.render(terrenos);
 
+        // Atualizar contador mobile
+        const rowCount = document.getElementById('tableRowCount');
+        if (rowCount) {
+            rowCount.textContent = `${terrenos.length} terrenos`;
+        }
+
         // Atualizar mapa
         MapManager.addMarkers(terrenos);
 
@@ -77,6 +83,24 @@ const App = {
 
     // Configurar event listeners
     setupEventListeners() {
+        // Mobile table toggle
+        const mobileToggle = document.getElementById('mobileTableToggle');
+        const tableContainer = document.getElementById('tableContainer');
+
+        if (mobileToggle && tableContainer) {
+            mobileToggle.addEventListener('click', () => {
+                mobileToggle.classList.toggle('expanded');
+                tableContainer.classList.toggle('expanded');
+
+                const toggleText = mobileToggle.querySelector('.toggle-text');
+                if (mobileToggle.classList.contains('expanded')) {
+                    toggleText.textContent = 'Tabela de Terrenos';
+                } else {
+                    toggleText.textContent = 'Ver Tabela de Terrenos';
+                }
+            });
+        }
+
         // Botao adicionar terreno
         document.getElementById('btnAddTerreno').addEventListener('click', () => {
             this.openModal();

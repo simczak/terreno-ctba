@@ -64,7 +64,14 @@
                     <button class="btn btn-secondary" id="btnExportJSON">Exportar JSON</button>
                 </div>
             </div>
-            <div class="table-container">
+            <!-- Mobile Table Toggle -->
+            <button class="mobile-table-toggle" id="mobileTableToggle">
+                <span class="toggle-icon">▼</span>
+                <span class="toggle-text">Ver Tabela de Terrenos</span>
+                <span class="toggle-count" id="tableRowCount"></span>
+            </button>
+
+            <div class="table-container" id="tableContainer">
                 <table id="terrenosTable">
                     <thead>
                         <tr>
