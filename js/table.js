@@ -79,36 +79,13 @@ const TableManager = {
     render(terrenos) {
         this.tableBody.innerHTML = '';
 
-        // Adicionar linha de toggle para mobile
-        const toggleRow = document.createElement('tr');
-        toggleRow.classList.add('table-rows-toggle');
-        toggleRow.innerHTML = `
-            <td colspan="14">
-                <span class="toggle-icon">▼</span>
-                <span class="toggle-text">Ver ${terrenos.length} terrenos</span>
-            </td>
-        `;
-        toggleRow.addEventListener('click', () => {
-            toggleRow.classList.toggle('expanded');
-            this.tableBody.classList.toggle('expanded');
-            const toggleText = toggleRow.querySelector('.toggle-text');
-            if (this.tableBody.classList.contains('expanded')) {
-                toggleText.textContent = `Ocultar terrenos`;
-            } else {
-                toggleText.textContent = `Ver ${terrenos.length} terrenos`;
-            }
-        });
-        this.tableBody.appendChild(toggleRow);
-
         terrenos.forEach(terreno => {
             const { mainRow, obsRow } = this.createRow(terreno);
-            mainRow.classList.add('data-row');
-            obsRow.classList.add('data-row');
             this.tableBody.appendChild(mainRow);
             this.tableBody.appendChild(obsRow);
         });
 
-        // Forcar sincronizacao do estado visual das observacoes
+        // Sincronizar estado visual das observacoes
         if (this.allExpanded) {
             this.expandAll();
         } else {
