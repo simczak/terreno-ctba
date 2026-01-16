@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Terrenos a Venda em Curitiba</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1>Terrenos a Venda - Curitiba</h1>
+        <p class="subtitle">Dashboard de Analise e Comparacao</p>
+    </header>
+
+    <!-- Stats Cards -->
+    <section class="stats-container">
+        <div class="stat-card">
+            <span class="stat-value" id="totalTerrenos">0</span>
+            <span class="stat-label">Total de Terrenos</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="mediaPrecoM2">R$ 0</span>
+            <span class="stat-label">Media Preco/m2</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="menorValor">R$ 0</span>
+            <span class="stat-label">Menor Valor</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="maiorValor">R$ 0</span>
+            <span class="stat-label">Maior Valor</span>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Map Section -->
+        <section class="map-section">
+            <div class="section-header">
+                <h2>Mapa dos Terrenos</h2>
+            </div>
+            <div id="map"></div>
+        </section>
+
+        <!-- Table Section -->
+        <section class="table-section">
+            <div class="section-header">
+                <h2>Lista de Terrenos</h2>
+                <div class="table-actions">
+                    <select id="filterBairro" class="filter-select">
+                        <option value="">Todos os Bairros</option>
+                    </select>
+                    <button class="btn btn-secondary btn-small" id="btnExpandAll" title="Expandir todas observacoes">Expandir Tudo</button>
+                    <button class="btn btn-secondary btn-small" id="btnCollapseAll" title="Colapsar todas observacoes">Colapsar Tudo</button>
+                    <button class="btn btn-primary" id="btnAddTerreno">+ Adicionar Terreno</button>
+                    <button class="btn btn-secondary" id="btnCalcTempos">Calcular Tempos</button>
+                    <button class="btn btn-primary" id="btnCalcNotas">Calcular Notas</button>
+                    <button class="btn btn-secondary" id="btnExportJSON">Exportar JSON</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="terrenosTable">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Sigla</th>
+                            <th rowspan="2" data-sort="nota">Nota</th>
+                            <th rowspan="2" data-sort="valor">Valor (R$)</th>
+                            <th rowspan="2" data-sort="bairro">Bairro</th>
+                            <th rowspan="2" data-sort="endereco">Endereco</th>
+                            <th rowspan="2" data-sort="area_m2">Area (m2)</th>
+                            <th rowspan="2" data-sort="preco_m2">Preco/m2</th>
+                            <th rowspan="2">Local</th>
+                            <th rowspan="2">Seguranca</th>
+                            <th rowspan="2">Formato</th>
+                            <th colspan="3" class="tempo-header">Tempo de carro</th>
+                            <th rowspan="2">Acoes</th>
+                        </tr>
+                        <tr>
+                            <th data-sort="tempo_escritorio">Escritorio</th>
+                            <th data-sort="tempo_pais_marina">Pais da Marina</th>
+                            <th data-sort="tempo_marista">Marista</th>
+                        </tr>
+                    </thead>
+                    <tbody id="terrenosTableBody">
+                        <!-- Dados serao inseridos via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Explicacao da Formula de Notas -->
+            <div class="scoring-explanation">
+                <h3>Como as Notas sao Calculadas</h3>
+                <p>A nota final de cada terreno e calculada usando uma media ponderada de 9 criterios, cada um com seu peso especifico:</p>
+
+                <div class="scoring-formula">
+                    <strong>Nota Final = (Nota1 × Peso1 + Nota2 × Peso2 + ... + NotaN × PesoN) / Soma dos Pesos</strong>
+                </div>
+
+                <div class="scoring-criteria">
+                    <div class="criteria-group">
+                        <h4>Criterios e Pesos</h4>
+                        <table class="criteria-table">
+                            <thead>
+                                <tr>
+                                    <th>Criterio</th>
+                                    <th>Peso</th>
+                                    <th>Como e Calculado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Valor Total</strong></td>
+                                    <td>20%</td>
+                                    <td>Escala inversa: R$990K = nota 10, R$4.4M = nota 0</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Preco/m2</strong></td>
+                                    <td>20%</td>
+                                    <td>Escala inversa: R$61/m2 = nota 10, R$1.400/m2 = nota 0</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Localizacao</strong></td>
+                                    <td>15%</td>
+                                    <td>Otimo=10, Muito bom=9, Bom=7, Ok=5, Longe=3, Ruim=2, Alaga=0</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Area (m2)</strong></td>
+                                    <td>10%</td>
+                                    <td>Ideal ~3.000m2 = nota 10, muito pequeno (&lt;1.500m2) = 3, muito grande (&gt;10.000m2) = 5</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Seguranca</strong></td>
+                                    <td>10%</td>
+                                    <td>Boa=10, Ok=7, Mais ou menos=5, Perigoso=2, Alaga=0</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Formato</strong></td>
+                                    <td>10%</td>
+                                    <td>Otimo=10, Bom=8, Ok=6, Estreito em L=4, Bem estreito=3</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tempo Escritorio</strong></td>
+                                    <td>5%</td>
+                                    <td>Ate 15min=10, ate 25min=7, ate 40min=4, mais=2</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tempo Pais Marina</strong></td>
+                                    <td>5%</td>
+                                    <td>Ate 15min=10, ate 25min=7, ate 40min=4, mais=2</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tempo Marista</strong></td>
+                                    <td>5%</td>
+                                    <td>Ate 15min=10, ate 25min=7, ate 40min=4, mais=2</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="criteria-group">
+                        <h4>Interpretacao das Notas</h4>
+                        <ul class="nota-interpretation">
+                            <li><span class="nota-badge nota-otima">7.0+</span> <strong>Otimo</strong> - Excelente opcao de compra</li>
+                            <li><span class="nota-badge nota-boa">5.0-6.9</span> <strong>Bom</strong> - Boa opcao, avaliar pontos especificos</li>
+                            <li><span class="nota-badge nota-media">3.0-4.9</span> <strong>Regular</strong> - Possui restricoes importantes</li>
+                            <li><span class="nota-badge nota-ruim">&lt;3.0</span> <strong>Evitar</strong> - Muitas restricoes ou problemas</li>
+                        </ul>
+                    </div>
+
+                    <div class="criteria-group">
+                        <h4>Exemplo de Calculo - T7 (Vista Alegre)</h4>
+                        <div class="example-calc">
+                            <p>Valor: R$1.36M → Nota 8 × 20 = 160</p>
+                            <p>Preco/m2: R$784 → Nota 5 × 20 = 100</p>
+                            <p>Local: Otimo → Nota 10 × 15 = 150</p>
+                            <p>Area: 1.732m2 → Nota 7 × 10 = 70</p>
+                            <p>Seguranca: Boa → Nota 10 × 10 = 100</p>
+                            <p>Formato: Otimo → Nota 10 × 10 = 100</p>
+                            <p>Tempo Escritorio: 14min → Nota 10 × 5 = 50</p>
+                            <p>Tempo Pais Marina: 9min → Nota 10 × 5 = 50</p>
+                            <p>Tempo Marista: 7min → Nota 10 × 5 = 50</p>
+                            <p><strong>Total: (160+100+150+70+100+100+50+50+50) / 100 = 830 / 100 = 8.3 → Arredondado: 7.8</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Indicators Section - Analise Visual -->
+        <section class="indicators-section">
+            <div class="section-header">
+                <h2>Analise Visual dos Terrenos</h2>
+                <button class="btn btn-secondary btn-small" id="btnCollapseIndicators">Colapsar Tudo</button>
+            </div>
+
+            <!-- Linha 1: Valor e Ranking -->
+            <div class="indicators-row">
+                <div class="indicator-card" id="indicatorValor">
+                    <h3 class="indicator-title">Valor (R$)</h3>
+                    <div class="indicator-content" id="valorContent">
+                        <!-- Range visual sera inserido via JS -->
+                    </div>
+                </div>
+                <div class="indicator-card" id="indicatorRanking">
+                    <h3 class="indicator-title">Ranking por Nota</h3>
+                    <div class="indicator-content" id="rankingContent">
+                        <!-- Ranking sera inserido via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linha 2: Area e Scatter -->
+            <div class="indicators-row">
+                <div class="indicator-card" id="indicatorArea">
+                    <h3 class="indicator-title">Area (m2)</h3>
+                    <div class="indicator-content" id="areaContent">
+                        <!-- Barras horizontais sera inserido via JS -->
+                    </div>
+                </div>
+                <div class="indicator-card" id="indicatorScatter">
+                    <h3 class="indicator-title">Preco/m2 vs Area</h3>
+                    <div class="indicator-content" id="scatterContent">
+                        <!-- Scatter plot sera inserido via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linha 3: Classificacoes -->
+            <div class="indicators-row">
+                <div class="indicator-card" id="indicatorMatriz">
+                    <h3 class="indicator-title">Local x Seguranca</h3>
+                    <div class="indicator-content" id="matrizContent">
+                        <!-- Matriz sera inserida via JS -->
+                    </div>
+                </div>
+                <div class="indicator-card" id="indicatorFormato">
+                    <h3 class="indicator-title">Formato do Terreno</h3>
+                    <div class="indicator-content" id="formatoContent">
+                        <!-- Distribuicao sera inserida via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linha 4: Tempos -->
+            <div class="indicators-row indicators-row-3">
+                <div class="indicator-card indicator-card-tempo" id="indicatorTempoEscritorio">
+                    <h3 class="indicator-title">Tempo Escritorio</h3>
+                    <div class="indicator-content" id="tempoEscritorioContent">
+                        <!-- Range sera inserido via JS -->
+                    </div>
+                </div>
+                <div class="indicator-card indicator-card-tempo" id="indicatorTempoPais">
+                    <h3 class="indicator-title">Tempo Pais Marina</h3>
+                    <div class="indicator-content" id="tempoPaisContent">
+                        <!-- Range sera inserido via JS -->
+                    </div>
+                </div>
+                <div class="indicator-card indicator-card-tempo" id="indicatorTempoMarista">
+                    <h3 class="indicator-title">Tempo Marista</h3>
+                    <div class="indicator-content" id="tempoMaristaContent">
+                        <!-- Range sera inserido via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linha 5: Bairros -->
+            <div class="indicators-row indicators-row-full">
+                <div class="indicator-card indicator-card-full" id="indicatorBairros">
+                    <h3 class="indicator-title">Distribuicao por Bairro</h3>
+                    <div class="indicator-content" id="bairrosContent">
+                        <!-- Cards por bairro sera inserido via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal para Adicionar/Editar Terreno -->
+    <div id="terrenoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Adicionar Terreno</h3>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <form id="terrenoForm">
+                <input type="hidden" id="terrenoId">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="valor">Valor (R$)</label>
+                        <input type="number" id="valor" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="area_m2">Area (m2)</label>
+                        <input type="number" id="area_m2" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bairro">Bairro</label>
+                        <input type="text" id="bairro" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endereco">Endereco</label>
+                        <input type="text" id="endereco" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label for="link_maps">Link Google Maps</label>
+                        <div class="input-with-button">
+                            <input type="url" id="link_maps" placeholder="https://maps.app.goo.gl/...">
+                            <button type="button" class="btn btn-primary" id="btnPegarDados">Pegar dados</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="link_anuncio">Link do Anuncio</label>
+                        <input type="url" id="link_anuncio" placeholder="https://...">
+                    </div>
+                </div>
+
+                <!-- Campos ocultos para lat/lng -->
+                <input type="hidden" id="lat">
+                <input type="hidden" id="lng">
+
+                <!-- Exibicao de coordenadas e tempos -->
+                <div id="dadosLocalizacao" class="dados-localizacao" style="display: none;">
+                    <div class="coords-display">
+                        <span id="coordsDisplay">Coordenadas: --</span>
+                    </div>
+                    <div class="tempos-display">
+                        <div class="tempo-item">
+                            <span class="tempo-label">Escritorio:</span>
+                            <span id="tempoEscritorioDisplay" class="tempo-value">--</span>
+                        </div>
+                        <div class="tempo-item">
+                            <span class="tempo-label">Pais da Marina:</span>
+                            <span id="tempoPaisMarinaDisplay" class="tempo-value">--</span>
+                        </div>
+                        <div class="tempo-item">
+                            <span class="tempo-label">Marista:</span>
+                            <span id="tempoMaristaDisplay" class="tempo-value">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h4>Classificacoes</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="valor_meta">Valor vs Meta</label>
+                        <select id="valor_meta">
+                            <option value="Otimo">Otimo</option>
+                            <option value="Bom">Bom</option>
+                            <option value="Acima">Acima</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="local">Local</label>
+                        <select id="local">
+                            <option value="Otimo">Otimo</option>
+                            <option value="Muito bom">Muito bom</option>
+                            <option value="Bom">Bom</option>
+                            <option value="ok">Ok</option>
+                            <option value="Longe">Longe</option>
+                            <option value="Ruim">Ruim</option>
+                            <option value="Alaga">Alaga</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="seguranca">Seguranca</label>
+                        <select id="seguranca">
+                            <option value="Boa">Boa</option>
+                            <option value="ok">Ok</option>
+                            <option value="mais ou menos">Mais ou menos</option>
+                            <option value="Perigoso">Perigoso</option>
+                            <option value="Alaga">Alaga</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tamanho">Tamanho</label>
+                        <select id="tamanho">
+                            <option value="Otimo">Otimo</option>
+                            <option value="Bom">Bom</option>
+                            <option value="Menor do que buscamos">Menor do que buscamos</option>
+                            <option value="Muito grande">Muito grande</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="formato">Formato</label>
+                        <select id="formato">
+                            <option value="Otimo">Otimo</option>
+                            <option value="Bom">Bom</option>
+                            <option value="OK">OK</option>
+                            <option value="Bem estreito">Bem estreito</option>
+                            <option value="Estreito em L">Estreito em L</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="observacoes">Observacoes</label>
+                    <textarea id="observacoes" rows="3"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmacao de Exclusao -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Confirmar Exclusao</h3>
+                <button class="close-btn" id="closeDeleteModal">&times;</button>
+            </div>
+            <p>Tem certeza que deseja excluir este terreno?</p>
+            <div class="form-actions">
+                <button class="btn btn-secondary" id="cancelDeleteBtn">Cancelar</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Custom JS -->
+    <script src="js/data.js"></script>
+    <script src="js/routing.js"></script>
+    <script src="js/scoring.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/table.js"></script>
+    <script src="js/indicators.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
