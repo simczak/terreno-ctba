@@ -3,7 +3,7 @@
 const TableManager = {
     tableBody: null,
     currentSort: { campo: 'valor', direcao: 'asc' },
-    allExpanded: true, // Por padrao, todas as observacoes estao expandidas
+    allExpanded: false, // Por padrao, todas as observacoes estao colapsadas
 
     // Inicializar tabela
     init() {
