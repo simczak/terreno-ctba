@@ -107,6 +107,13 @@ const TableManager = {
             this.tableBody.appendChild(mainRow);
             this.tableBody.appendChild(obsRow);
         });
+
+        // Forcar sincronizacao do estado visual das observacoes
+        if (this.allExpanded) {
+            this.expandAll();
+        } else {
+            this.collapseAll();
+        }
     },
 
     // Criar linha da tabela (retorna linha principal + linha de observacoes)
