@@ -2715,3 +2715,107 @@ a.link-externo:hover {
         font-size: 0.85rem;
     }
 }
+
+/* ============================================
+   FIXES MOBILE - Overflow Horizontal
+   ============================================ */
+
+/* Criteria table - scroll horizontal */
+@media (max-width: 768px) {
+    .criteria-group {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .criteria-table {
+        min-width: 500px;
+    }
+
+    /* Example calc - prevent cut off */
+    .example-calc {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
+
+    .example-calc p {
+        white-space: nowrap;
+    }
+
+    /* Matriz - ensure horizontal scroll works */
+    .matriz-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -0.75rem;
+        padding: 0 0.75rem;
+    }
+
+    .matriz-table {
+        min-width: 350px;
+    }
+
+    /* Formato distribution - fix count being cut off */
+    .distribuicao-item {
+        flex-wrap: nowrap;
+    }
+
+    .distribuicao-info {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .distribuicao-count {
+        flex-shrink: 0;
+        margin-left: 0.5rem;
+    }
+
+    .distribuicao-terrenos {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .criteria-table {
+        min-width: 450px;
+    }
+
+    .matriz-table {
+        min-width: 300px;
+    }
+
+    /* Show terrenos below the bar instead */
+    .distribuicao-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .distribuicao-item > .distribuicao-icon {
+        display: none;
+    }
+
+    .distribuicao-info {
+        width: 100%;
+    }
+
+    .distribuicao-bar {
+        width: 100%;
+    }
+
+    .distribuicao-count {
+        position: absolute;
+        right: 0.5rem;
+        top: 0.5rem;
+    }
+
+    .distribuicao-item {
+        position: relative;
+        padding-right: 2.5rem;
+    }
+
+    .distribuicao-terrenos {
+        display: block;
+        margin-top: 0.25rem;
+        margin-left: 0;
+        width: 100%;
+    }
+}
