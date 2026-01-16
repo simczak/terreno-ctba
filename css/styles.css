@@ -2871,21 +2871,24 @@ a.link-externo:hover {
 @media (max-width: 768px) {
     /* Show toggle row on mobile */
     .table-rows-toggle {
-        display: table-row;
+        display: table-row !important;
     }
 
     .table-rows-toggle td {
-        background: linear-gradient(135deg, #3498db, #2980b9);
-        color: white;
+        background: linear-gradient(135deg, #3498db, #2980b9) !important;
+        color: white !important;
         text-align: center;
         padding: 0.75rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s ease;
+        position: sticky;
+        left: 0;
+        min-width: 100vw;
     }
 
     .table-rows-toggle td:active {
-        background: linear-gradient(135deg, #2980b9, #1f6dad);
+        background: linear-gradient(135deg, #2980b9, #1f6dad) !important;
     }
 
     .table-rows-toggle .toggle-icon {
