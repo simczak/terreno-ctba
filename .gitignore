@@ -17,3 +17,9 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Claude Code local settings
+.claude/
+
+# Windows artifacts
+nul
