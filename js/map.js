@@ -118,28 +118,36 @@ const MapManager = {
         }, 100);
     },
 
-    // Criar marcador customizado com preco e area
+    // Criar marcador customizado com preco, area e nota
     createCustomMarker(terreno) {
-        // Determinar classe CSS baseada no valor_meta
-        let markerClass = 'bom';
-        if (terreno.classificacao) {
-            const valorMeta = terreno.classificacao.valor_meta || '';
-            if (valorMeta.toLowerCase() === 'otimo') {
-                markerClass = 'otimo';
-            } else if (valorMeta.toLowerCase() === 'acima') {
-                markerClass = 'acima';
+        // Determinar classe CSS baseada na nota
+        let notaClass = 'nota-pendente';
+        let notaTexto = '-';
+
+        if (terreno.nota !== undefined && terreno.nota !== null) {
+            notaTexto = terreno.nota.toFixed(1);
+            if (terreno.nota >= 7) {
+                notaClass = 'nota-otima';
+            } else if (terreno.nota >= 5) {
+                notaClass = 'nota-boa';
+            } else if (terreno.nota >= 3) {
+                notaClass = 'nota-media';
+            } else {
+                notaClass = 'nota-ruim';
             }
         }
 
         // Formatar valor para exibicao
         const valorFormatado = this.formatValorCurto(terreno.valor);
-        const areaFormatada = formatNumber(terreno.area_m2);
 
-        // Criar HTML do marcador
+        // Criar HTML do marcador com nota colorida
         const markerHtml = `
-            <div class="custom-marker ${markerClass}">
-                <div class="marker-price">${valorFormatado}</div>
-                <div class="marker-area">${areaFormatada} m2</div>
+            <div class="custom-marker">
+                <div class="marker-nota ${notaClass}">${notaTexto}</div>
+                <div class="marker-info">
+                    <div class="marker-sigla">T${terreno.id}</div>
+                    <div class="marker-price">${valorFormatado}</div>
+                </div>
             </div>
         `;
 
@@ -147,9 +155,9 @@ const MapManager = {
         const customIcon = L.divIcon({
             html: markerHtml,
             className: 'marker-container',
-            iconSize: [80, 40],
-            iconAnchor: [40, 40],
-            popupAnchor: [0, -40]
+            iconSize: [90, 36],
+            iconAnchor: [45, 36],
+            popupAnchor: [0, -36]
         });
 
         return customIcon;
@@ -170,6 +178,16 @@ const MapManager = {
         const valor = formatCurrency(terreno.valor);
         const precoM2 = formatCurrency(terreno.preco_m2);
         const area = formatNumber(terreno.area_m2);
+
+        // Nota com cor
+        let notaHtml = '';
+        if (terreno.nota !== undefined && terreno.nota !== null) {
+            let notaClass = 'nota-ruim';
+            if (terreno.nota >= 7) notaClass = 'nota-otima';
+            else if (terreno.nota >= 5) notaClass = 'nota-boa';
+            else if (terreno.nota >= 3) notaClass = 'nota-media';
+            notaHtml = `<span class="popup-nota ${notaClass}">${terreno.nota.toFixed(1)}</span>`;
+        }
 
         let linksHtml = '';
         if (terreno.link_maps) {
@@ -192,7 +210,10 @@ const MapManager = {
 
         return `
             <div class="popup-content">
-                <h4>${terreno.bairro}</h4>
+                <div class="popup-header">
+                    <h4>T${terreno.id} - ${terreno.bairro}</h4>
+                    ${notaHtml}
+                </div>
                 <p>${terreno.endereco}</p>
                 <p class="popup-price">${valor}</p>
                 <p><strong>Area:</strong> ${area} m2</p>
