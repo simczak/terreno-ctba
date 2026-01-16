@@ -159,6 +159,16 @@ body {
 }
 
 /* Custom Map Markers */
+.marker-container {
+    background: transparent !important;
+    border: none !important;
+}
+
+.leaflet-marker-icon.marker-container {
+    background: transparent !important;
+    border: none !important;
+}
+
 .custom-marker {
     display: flex;
     align-items: stretch;
@@ -774,6 +784,35 @@ form h4 {
     #map {
         height: 300px;
         border-radius: 8px;
+    }
+
+    /* Mobile map markers - ensure visibility */
+    .marker-container {
+        background: transparent !important;
+        border: none !important;
+    }
+
+    .custom-marker {
+        display: flex !important;
+        min-width: 80px;
+    }
+
+    .marker-nota {
+        min-width: 32px;
+        padding: 3px 6px;
+        font-size: 12px;
+    }
+
+    .marker-info {
+        padding: 2px 6px;
+    }
+
+    .marker-sigla {
+        font-size: 8px;
+    }
+
+    .marker-price {
+        font-size: 10px;
     }
 
     .map-section,
@@ -2817,5 +2856,85 @@ a.link-externo:hover {
         margin-top: 0.25rem;
         margin-left: 0;
         width: 100%;
+    }
+}
+
+/* ============================================
+   MOBILE TABLE TOGGLE - Tabela Colapsada
+   ============================================ */
+
+/* Hide toggle on desktop */
+.mobile-table-toggle {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    /* Show toggle button on mobile */
+    .mobile-table-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+    }
+
+    .mobile-table-toggle:hover,
+    .mobile-table-toggle:active {
+        background: linear-gradient(135deg, #2980b9, #1f6dad);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+    }
+
+    .mobile-table-toggle .toggle-icon {
+        transition: transform 0.3s ease;
+        font-size: 0.8rem;
+    }
+
+    .mobile-table-toggle.expanded .toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    .mobile-table-toggle .toggle-count {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+    }
+
+    /* Hide table by default on mobile */
+    .table-container {
+        display: none;
+        animation: slideDown 0.3s ease;
+    }
+
+    .table-container.expanded {
+        display: block;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Update toggle text when expanded */
+    .mobile-table-toggle.expanded .toggle-text::after {
+        content: " (Ocultar)";
     }
 }
